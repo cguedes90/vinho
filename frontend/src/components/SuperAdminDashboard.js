@@ -10,6 +10,18 @@ const SuperAdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showAddWine, setShowAddWine] = useState(false);
+    const [clienteFilter, setClienteFilter] = useState('');
+    const [lojistaFilter, setLojistaFilter] = useState('');
+    const [newWine, setNewWine] = useState({
+        nome: '',
+        preco: '',
+        tipo: '',
+        descricao: '',
+        harmonizacao: '',
+        estoque: '',
+        lojista_id: ''
+    });
 
     const API_BASE = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3002/api';
 
@@ -96,6 +108,36 @@ const SuperAdminDashboard = () => {
             
         } catch (error) {
             alert('Erro ao excluir usuário: ' + (error.response?.data?.error || error.message));
+        }
+    };
+
+    const handleAddWine = async (e) => {
+        e.preventDefault();
+        
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post(`${API_BASE}/vinhos`, newWine, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            setShowAddWine(false);
+            setNewWine({
+                nome: '',
+                preco: '',
+                tipo: '',
+                descricao: '',
+                harmonizacao: '',
+                estoque: '',
+                lojista_id: ''
+            });
+            
+            loadVinhos();
+            loadDashboard();
+            
+            alert('Vinho adicionado com sucesso!');
+            
+        } catch (error) {
+            alert('Erro ao adicionar vinho: ' + (error.response?.data?.error || error.message));
         }
     };
 
@@ -308,9 +350,30 @@ const SuperAdminDashboard = () => {
         </div>
     );
 
-    const renderLojistas = () => (
+    const renderLojistas = () => {
+        const filteredLojistas = lojistas.filter(lojista => 
+            lojista.nome.toLowerCase().includes(lojistaFilter.toLowerCase()) ||
+            lojista.email.toLowerCase().includes(lojistaFilter.toLowerCase())
+        );
+        
+        return (
         <div>
             <h3 style={{ color: '#8B0000', marginBottom: '20px' }}>Lojistas Cadastrados</h3>
+            <div style={{ marginBottom: '20px' }}>
+                <input
+                    type="text"
+                    placeholder="🔍 Buscar por nome ou email..."
+                    value={lojistaFilter}
+                    onChange={(e) => setLojistaFilter(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        fontSize: '14px'
+                    }}
+                />
+            </div>
             <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ backgroundColor: '#f8f9fa' }}>
@@ -324,7 +387,7 @@ const SuperAdminDashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {lojistas.map((lojista) => (
+                        {filteredLojistas.map((lojista) => (
                             <tr key={lojista.id} style={{ borderTop: '1px solid #dee2e6' }}>
                                 <td style={{ padding: '12px' }}>{lojista.nome}</td>
                                 <td style={{ padding: '12px' }}>{lojista.email}</td>
@@ -355,11 +418,33 @@ const SuperAdminDashboard = () => {
                 </table>
             </div>
         </div>
-    );
+        );
+    };
 
-    const renderClientes = () => (
+    const renderClientes = () => {
+        const filteredClientes = clientes.filter(cliente => 
+            cliente.nome.toLowerCase().includes(clienteFilter.toLowerCase()) ||
+            cliente.email.toLowerCase().includes(clienteFilter.toLowerCase())
+        );
+        
+        return (
         <div>
             <h3 style={{ color: '#8B0000', marginBottom: '20px' }}>Clientes Cadastrados</h3>
+            <div style={{ marginBottom: '20px' }}>
+                <input
+                    type="text"
+                    placeholder="🔍 Buscar por nome ou email..."
+                    value={clienteFilter}
+                    onChange={(e) => setClienteFilter(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        fontSize: '14px'
+                    }}
+                />
+            </div>
             <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ backgroundColor: '#f8f9fa' }}>
@@ -371,7 +456,7 @@ const SuperAdminDashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {clientes.map((cliente) => (
+                        {filteredClientes.map((cliente) => (
                             <tr key={cliente.id} style={{ borderTop: '1px solid #dee2e6' }}>
                                 <td style={{ padding: '12px' }}>{cliente.id}</td>
                                 <td style={{ padding: '12px' }}>{cliente.nome}</td>
@@ -398,11 +483,29 @@ const SuperAdminDashboard = () => {
                 </table>
             </div>
         </div>
-    );
+        );
+    };
 
     const renderVinhos = () => (
         <div>
-            <h3 style={{ color: '#8B0000', marginBottom: '20px' }}>Todos os Vinhos</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ color: '#8B0000', margin: 0 }}>Todos os Vinhos</h3>
+                <button
+                    onClick={() => setShowAddWine(true)}
+                    style={{
+                        backgroundColor: '#8B0000',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '10px 20px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    ➕ Adicionar Vinho
+                </button>
+            </div>
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
@@ -526,6 +629,189 @@ const SuperAdminDashboard = () => {
                     </>
                 )}
             </div>
+            
+            {/* Modal Adicionar Vinho */}
+            {showAddWine && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '8px',
+                        padding: '30px',
+                        width: '90%',
+                        maxWidth: '500px',
+                        maxHeight: '90vh',
+                        overflowY: 'auto'
+                    }}>
+                        <h3 style={{ color: '#8B0000', marginBottom: '20px' }}>➕ Adicionar Novo Vinho</h3>
+                        
+                        <form onSubmit={handleAddWine}>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nome:</label>
+                                <input
+                                    type="text"
+                                    value={newWine.nome}
+                                    onChange={(e) => setNewWine({...newWine, nome: e.target.value})}
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '4px'
+                                    }}
+                                />
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Preço:</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={newWine.preco}
+                                        onChange={(e) => setNewWine({...newWine, preco: e.target.value})}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                        }}
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Tipo:</label>
+                                    <select
+                                        value={newWine.tipo}
+                                        onChange={(e) => setNewWine({...newWine, tipo: e.target.value})}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                        }}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        <option value="Tinto">Tinto</option>
+                                        <option value="Branco">Branco</option>
+                                        <option value="Rosé">Rosé</option>
+                                        <option value="Espumante">Espumante</option>
+                                        <option value="Licoroso">Licoroso</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Descrição:</label>
+                                <textarea
+                                    value={newWine.descricao}
+                                    onChange={(e) => setNewWine({...newWine, descricao: e.target.value})}
+                                    required
+                                    rows={3}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '4px',
+                                        resize: 'vertical'
+                                    }}
+                                />
+                            </div>
+                            
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Harmonização:</label>
+                                <input
+                                    type="text"
+                                    value={newWine.harmonizacao}
+                                    onChange={(e) => setNewWine({...newWine, harmonizacao: e.target.value})}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '4px'
+                                    }}
+                                />
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Estoque:</label>
+                                    <input
+                                        type="number"
+                                        value={newWine.estoque}
+                                        onChange={(e) => setNewWine({...newWine, estoque: e.target.value})}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                        }}
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Lojista ID:</label>
+                                    <input
+                                        type="number"
+                                        value={newWine.lojista_id}
+                                        onChange={(e) => setNewWine({...newWine, lojista_id: e.target.value})}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px'
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddWine(false)}
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: '#f8f9fa',
+                                        color: '#333',
+                                        border: '1px solid #ccc',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: '#8B0000',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    ➕ Adicionar Vinho
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

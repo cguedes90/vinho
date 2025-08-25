@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="wineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B0000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6B0000;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5F5F5;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#E0E0E0;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Taça base -->
+  <rect x="28" y="50" width="8" height="10" fill="#8B0000" rx="1"/>
+  
+  <!-- Haste -->
+  <rect x="30" y="42" width="4" height="8" fill="#8B0000"/>
+  
+  <!-- Bojo da taça -->
+  <path d="M16 8 C16 8 16 22 32 42 C48 22 48 8 48 8 Z" 
+        fill="url(#glassGradient)" 
+        stroke="#8B0000" 
+        stroke-width="1.5"/>
+  
+  <!-- Vinho dentro da taça -->
+  <path d="M18 10 C18 10 18 18 32 32 C46 18 46 10 46 10 Z" 
+        fill="url(#wineGradient)" 
+        opacity="0.85"/>
+  
+  <!-- Brilho na taça -->
+  <ellipse cx="24" cy="16" rx="3" ry="6" fill="#FFFFFF" opacity="0.3"/>
+  
+  <!-- Borda superior -->
+  <ellipse cx="32" cy="8" rx="16" ry="2" 
+           fill="none" 
+           stroke="#8B0000" 
+           stroke-width="1.5"/>
+</svg>
