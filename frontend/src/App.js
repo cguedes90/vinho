@@ -7,6 +7,7 @@ import WineRecommendations from './components/WineRecommendations';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import LojistaPanel from './components/LojistaPanel';
+import WineGuide from './components/WineGuide';
 
 function AppContent() {
   const [wines, setWines] = useState([]);
@@ -16,6 +17,7 @@ function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showLojistaPanel, setShowLojistaPanel] = useState(false);
+  const [showWineGuide, setShowWineGuide] = useState(false);
   
   const { user, logout, isLojista } = useAuth();
 
@@ -68,7 +70,24 @@ function AppContent() {
           alignItems: 'center',
           padding: '0 20px'
         }}>
-          <h1 style={{ margin: 0, fontSize: '32px' }}>🍷 Vitrine de Vinhos</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <h1 style={{ margin: 0, fontSize: '32px' }}>🍷 Vitrine de Vinhos</h1>
+            <button
+              onClick={() => setShowWineGuide(true)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: '1px solid rgba(255,255,255,0.3)',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              📖 Guia de Vinhos
+            </button>
+          </div>
           
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
             {user ? (
@@ -261,6 +280,12 @@ function AppContent() {
             setShowRegister(false);
             setShowLogin(true);
           }}
+        />
+      )}
+
+      {showWineGuide && (
+        <WineGuide
+          onClose={() => setShowWineGuide(false)}
         />
       )}
     </div>
