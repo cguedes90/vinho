@@ -7,7 +7,7 @@ import WineRecommendations from './components/WineRecommendations';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import LojistaPanel from './components/LojistaPanel';
-import WineGuide from './components/WineGuide';
+import WineQuiz from './components/WineQuiz';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 
 function AppContent() {
@@ -18,8 +18,10 @@ function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showLojistaPanel, setShowLojistaPanel] = useState(false);
-  const [showWineGuide, setShowWineGuide] = useState(false);
+  const [showWineQuiz, setShowWineQuiz] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [quizRecommendation, setQuizRecommendation] = useState(null);
   
   const { user, logout, isLojista, isSuperAdmin } = useAuth();
 
@@ -75,7 +77,7 @@ function AppContent() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <h1 style={{ margin: 0, fontSize: '32px' }}>🍷 Vitrine de Vinhos</h1>
             <button
-              onClick={() => setShowWineGuide(true)}
+              onClick={() => setShowWineQuiz(true)}
               style={{
                 padding: '8px 16px',
                 backgroundColor: 'rgba(255,255,255,0.2)',
@@ -87,7 +89,7 @@ function AppContent() {
                 fontWeight: 'bold'
               }}
             >
-              📖 Guia de Vinhos
+              🍷 Guia de Vinhos
             </button>
           </div>
           
@@ -303,9 +305,14 @@ function AppContent() {
         />
       )}
 
-      {showWineGuide && (
-        <WineGuide
-          onClose={() => setShowWineGuide(false)}
+      {showWineQuiz && (
+        <WineQuiz
+          onClose={() => setShowWineQuiz(false)}
+          onRecommendation={(recommendation) => {
+            setQuizRecommendation(recommendation);
+            // Opcional: fazer busca pelo vinho recomendado
+            handleSearch(recommendation.name);
+          }}
         />
       )}
     </div>
