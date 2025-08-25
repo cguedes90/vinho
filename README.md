@@ -202,6 +202,41 @@ Todas as funcionalidades principais foram implementadas:
 - ✅ Banco de dados configurado
 - ✅ API RESTful completa
 
+## 🚀 Deploy no Vercel
+
+### Pré-requisitos
+1. Conta no GitHub (já configurada)
+2. Conta no Vercel
+3. Banco PostgreSQL acessível (Neon já configurado)
+
+### Passos para Deploy
+1. **Fork ou clone este repositório**
+2. **Conectar ao Vercel**:
+   - Acesse [vercel.com](https://vercel.com)
+   - Importe o projeto do GitHub
+   - Selecione o repositório `cguedes90/vinho`
+
+3. **Configurar Variáveis de Ambiente**:
+   No painel do Vercel, adicione:
+   ```
+   DATABASE_URL=postgresql://neondb_owner:npg_ZkKA7Cb0zsSy@ep-summer-cake-ac29tuz0-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+   JWT_SECRET=your_production_jwt_secret_here
+   ```
+
+4. **Deploy**:
+   - O Vercel detectará automaticamente o `vercel.json`
+   - Fará build do frontend e backend automaticamente
+   - A aplicação estará disponível na URL fornecida
+
+### URLs da Aplicação
+- **Desenvolvimento**: http://localhost:3000
+- **Produção**: [URL do Vercel após deploy]
+
+### Estrutura de Deploy
+- **Frontend**: React build estático servido pelo Vercel
+- **Backend**: API serverless no Vercel
+- **Banco**: PostgreSQL no Neon (já configurado)
+
 ## 🤝 Dados de Exemplo
 
 O sistema já vem com dados de exemplo:
@@ -211,10 +246,15 @@ O sistema já vem com dados de exemplo:
 
 ## 📞 Suporte
 
-Para dúvidas ou problemas:
+### Desenvolvimento Local
 1. Verifique se as portas 3000 (frontend) e 3002 (backend) estão livres
 2. Confirme que o banco de dados está acessível
 3. Verifique os logs no console para detalhes de erros
+
+### Produção (Vercel)
+1. Verifique as variáveis de ambiente no painel do Vercel
+2. Veja os logs de build e runtime no Vercel
+3. Confirme se o banco Neon está acessível
 
 ## 🔮 Possíveis Melhorias Futuras
 

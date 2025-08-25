@@ -29,7 +29,8 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await axios.post('http://localhost:3002/api/auth/login', {
+            const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3002/api';
+            const response = await axios.post(`${API_URL}/auth/login`, {
                 email,
                 password
             });
@@ -52,7 +53,8 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (nome, email, password, tipoUsuario) => {
         try {
-            const response = await axios.post('http://localhost:3002/api/auth/register', {
+            const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3002/api';
+            const response = await axios.post(`${API_URL}/auth/register`, {
                 nome,
                 email,
                 password,
