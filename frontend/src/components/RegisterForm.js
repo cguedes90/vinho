@@ -161,6 +161,9 @@ const RegisterForm = ({ onClose, switchToLogin }) => {
                         >
                             <option value="cliente">Cliente</option>
                             <option value="lojista">Lojista</option>
+                            {process.env.NODE_ENV === 'development' && (
+                                <option value="super_admin">Super Admin (Dev Only)</option>
+                            )}
                         </select>
                     </div>
 

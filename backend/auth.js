@@ -47,6 +47,20 @@ function requireLojista(req, res, next) {
     next();
 }
 
+function requireSuperAdmin(req, res, next) {
+    if (req.user.tipo_usuario !== 'super_admin') {
+        return res.status(403).json({ error: 'Acesso negado. Apenas super administradores podem acessar.' });
+    }
+    next();
+}
+
+function requireAdminOrLojista(req, res, next) {
+    if (req.user.tipo_usuario !== 'super_admin' && req.user.tipo_usuario !== 'lojista') {
+        return res.status(403).json({ error: 'Acesso negado. Apenas administradores ou lojistas podem acessar.' });
+    }
+    next();
+}
+
 async function createUser(nome, email, password, tipoUsuario) {
     const hashedPassword = await hashPassword(password);
     const result = await query(
@@ -84,6 +98,8 @@ module.exports = {
     generateToken,
     verifyToken,
     requireLojista,
+    requireSuperAdmin,
+    requireAdminOrLojista,
     createUser,
     authenticateUser
 };

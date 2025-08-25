@@ -8,6 +8,7 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import LojistaPanel from './components/LojistaPanel';
 import WineGuide from './components/WineGuide';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 
 function AppContent() {
   const [wines, setWines] = useState([]);
@@ -18,8 +19,9 @@ function AppContent() {
   const [showRegister, setShowRegister] = useState(false);
   const [showLojistaPanel, setShowLojistaPanel] = useState(false);
   const [showWineGuide, setShowWineGuide] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   
-  const { user, logout, isLojista } = useAuth();
+  const { user, logout, isLojista, isSuperAdmin } = useAuth();
 
   const handleSearch = async (query) => {
     setLoading(true);
@@ -93,6 +95,22 @@ function AppContent() {
             {user ? (
               <>
                 <span>Olá, {user.nome}!</span>
+                {isSuperAdmin && (
+                  <button
+                    onClick={() => setShowAdminDashboard(!showAdminDashboard)}
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      color: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {showAdminDashboard ? '← Voltar' : '🔧 Admin Dashboard'}
+                  </button>
+                )}
                 {isLojista && (
                   <>
                     <button
@@ -160,7 +178,9 @@ function AppContent() {
       </header>
 
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-        {showLojistaPanel && isLojista ? (
+        {showAdminDashboard && isSuperAdmin ? (
+          <SuperAdminDashboard />
+        ) : showLojistaPanel && isLojista ? (
           <LojistaPanel />
         ) : (
           <>

@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { query } = require('./db');
-const { verifyToken, requireLojista, createUser, authenticateUser, generateToken } = require('./auth');
+const { verifyToken, requireLojista, requireSuperAdmin, requireAdminOrLojista, createUser, authenticateUser, generateToken } = require('./auth');
 const fs = require('fs');
 const path = require('path');
 
@@ -18,7 +18,7 @@ app.post('/api/auth/register', async (req, res) => {
 		return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
 	}
 	
-	if (!['lojista', 'cliente'].includes(tipoUsuario)) {
+	if (!['lojista', 'cliente', 'super_admin'].includes(tipoUsuario)) {
 		return res.status(400).json({ error: 'Tipo de usuário inválido' });
 	}
 	
@@ -195,6 +195,144 @@ app.get('/api/lojista/vinhos', verifyToken, requireLojista, async (req, res) => 
 	try {
 		const result = await query('SELECT * FROM vinhos WHERE lojista_id = $1 ORDER BY id', [req.user.id]);
 		res.json(result.rows);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+	}
+});
+
+// Rotas do Super Admin
+app.get('/api/admin/dashboard', verifyToken, requireSuperAdmin, async (req, res) => {
+	try {
+		// Estatísticas gerais
+		const totalUsuarios = await query('SELECT COUNT(*) as total FROM usuarios');
+		const totalLojistas = await query('SELECT COUNT(*) as total FROM usuarios WHERE tipo_usuario = $1', ['lojista']);
+		const totalClientes = await query('SELECT COUNT(*) as total FROM usuarios WHERE tipo_usuario = $1', ['cliente']);
+		const totalVinhos = await query('SELECT COUNT(*) as total FROM vinhos');
+		
+		// Lojistas com mais vinhos
+		const topLojistas = await query(`
+			SELECT u.nome, u.email, COUNT(v.id) as total_vinhos
+			FROM usuarios u 
+			LEFT JOIN vinhos v ON u.id = v.lojista_id 
+			WHERE u.tipo_usuario = 'lojista'
+			GROUP BY u.id, u.nome, u.email
+			ORDER BY total_vinhos DESC
+			LIMIT 5
+		`);
+		
+		// Vinhos por tipo
+		const vinhosPorTipo = await query(`
+			SELECT tipo, COUNT(*) as quantidade
+			FROM vinhos 
+			GROUP BY tipo
+			ORDER BY quantidade DESC
+		`);
+		
+		res.json({
+			estatisticas: {
+				totalUsuarios: totalUsuarios.rows[0].total,
+				totalLojistas: totalLojistas.rows[0].total,
+				totalClientes: totalClientes.rows[0].total,
+				totalVinhos: totalVinhos.rows[0].total
+			},
+			topLojistas: topLojistas.rows,
+			vinhosPorTipo: vinhosPorTipo.rows
+		});
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.get('/api/admin/usuarios', verifyToken, requireSuperAdmin, async (req, res) => {
+	try {
+		const usuarios = await query(`
+			SELECT 
+				u.id, u.nome, u.email, u.tipo_usuario,
+				COUNT(v.id) as total_vinhos
+			FROM usuarios u 
+			LEFT JOIN vinhos v ON u.id = v.lojista_id
+			WHERE u.tipo_usuario IN ('lojista', 'cliente')
+			GROUP BY u.id, u.nome, u.email, u.tipo_usuario
+			ORDER BY u.tipo_usuario DESC, u.nome ASC
+		`);
+		res.json(usuarios.rows);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.get('/api/admin/lojistas', verifyToken, requireSuperAdmin, async (req, res) => {
+	try {
+		const lojistas = await query(`
+			SELECT 
+				u.id, u.nome, u.email,
+				COUNT(v.id) as total_vinhos,
+				COALESCE(SUM(v.estoque), 0) as estoque_total,
+				COALESCE(AVG(v.preco), 0) as preco_medio
+			FROM usuarios u 
+			LEFT JOIN vinhos v ON u.id = v.lojista_id
+			WHERE u.tipo_usuario = 'lojista'
+			GROUP BY u.id, u.nome, u.email
+			ORDER BY total_vinhos DESC, u.nome ASC
+		`);
+		res.json(lojistas.rows);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.get('/api/admin/clientes', verifyToken, requireSuperAdmin, async (req, res) => {
+	try {
+		const clientes = await query(`
+			SELECT id, nome, email
+			FROM usuarios 
+			WHERE tipo_usuario = 'cliente'
+			ORDER BY nome ASC
+		`);
+		res.json(clientes.rows);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.get('/api/admin/vinhos', verifyToken, requireSuperAdmin, async (req, res) => {
+	try {
+		const vinhos = await query(`
+			SELECT 
+				v.id, v.nome, v.descricao, v.preco, v.tipo, v.harmonizacao, v.estoque,
+				u.nome as lojista_nome, u.email as lojista_email
+			FROM vinhos v
+			INNER JOIN usuarios u ON v.lojista_id = u.id
+			ORDER BY v.id DESC
+		`);
+		res.json(vinhos.rows);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+	}
+});
+
+// Rota para deletar usuário (apenas super admin)
+app.delete('/api/admin/usuarios/:id', verifyToken, requireSuperAdmin, async (req, res) => {
+	const { id } = req.params;
+	
+	try {
+		// Verificar se o usuário existe e não é super_admin
+		const user = await query('SELECT tipo_usuario FROM usuarios WHERE id = $1', [id]);
+		if (user.rows.length === 0) {
+			return res.status(404).json({ error: 'Usuário não encontrado' });
+		}
+		
+		if (user.rows[0].tipo_usuario === 'super_admin') {
+			return res.status(403).json({ error: 'Não é possível deletar outro super administrador' });
+		}
+		
+		// Deletar vinhos do lojista primeiro (se houver)
+		await query('DELETE FROM vinhos WHERE lojista_id = $1', [id]);
+		
+		// Deletar o usuário
+		await query('DELETE FROM usuarios WHERE id = $1', [id]);
+		
+		res.json({ message: 'Usuário deletado com sucesso' });
 	} catch (err) {
 		res.status(500).json({ error: err.message });
 	}

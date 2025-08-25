@@ -94,7 +94,8 @@ export const AuthProvider = ({ children }) => {
             register,
             logout,
             isLojista: user?.tipo_usuario === 'lojista',
-            isCliente: user?.tipo_usuario === 'cliente'
+            isCliente: user?.tipo_usuario === 'cliente',
+            isSuperAdmin: user?.tipo_usuario === 'super_admin'
         }}>
             {children}
         </AuthContext.Provider>
